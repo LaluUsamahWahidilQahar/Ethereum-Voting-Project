@@ -2,38 +2,40 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 contract Voting {
-    struct Kandidat {
+    struct Candidate {
         uint id;
-        string nama;
-        uint jumlahVote;
+        string name;
+        uint voteCount;
     }
-    mapping(address => bool) public paraPemilih;
-    mapping(uint => Kandidat) public paraKandidat;
-    uint public jumlahKandidat;
 
-    //Constructor to initialize with two candidates
+    mapping(address => bool) public voters;
+    mapping(uint => Candidate) public candidates;
+    uint public candidateCount;
+
+    // Constructor to initialize with two candidates
     constructor() public {
-        tambahKandidat("Kandidat 1");
-        tambahKandidat("Kandidat 2");
+        addCandidate("Candidate 1");
+        addCandidate("Candidate 2");
     }
 
-    //Function to add a candidate
-    function tambahKandidat(string memory _nama) private {
-        jumlahKandidat++;
-        paraKandidat[jumlahKandidat] = Kandidat({
-            id: jumlahKandidat,
-            nama: _nama,
-            jumlahVote: 0
+    // Function to add a candidate
+    function addCandidate(string memory _name) private {
+        candidateCount++;
+        candidates[candidateCount] = Candidate({
+            id: candidateCount,
+            name: _name,
+            voteCount: 0
         });
-    } //Function for voters to cast their vote
+    }
 
-    function vote(uint _kandidatId) public {
-        require(!paraPemilih[msg.sender], "Anda sudah memberikan suara.");
+    // Function for voters to cast their vote
+    function vote(uint _candidateId) public {
+        require(!voters[msg.sender], "You have already voted.");
         require(
-            _kandidatId > 0 && _kandidatId <= jumlahKandidat,
-            "ID kandidat tidak valid."
+            _candidateId > 0 && _candidateId <= candidateCount,
+            "Invalid candidate ID."
         );
-        paraPemilih[msg.sender] = true;
-        paraKandidat[_kandidatId].jumlahVote++;
+        voters[msg.sender] = true;
+        candidates[_candidateId].voteCount++;
     }
 }
