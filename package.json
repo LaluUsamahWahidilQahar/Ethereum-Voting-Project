@@ -11,6 +11,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"@hyperledger/caliper-cli": "^0.6.0",
+		"@truffle/hdwallet-provider": "^2.1.15",
 		"blockchain-voting": "file:",
 		"ethers": "^6.13.5",
 		"lite-server": "^2.6.1",
