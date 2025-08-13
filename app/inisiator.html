@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voting DApp - Inisiator</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="format.css">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    <script src="vendor/truffle-contract/dist/truffle-contract.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="app.js"></script>
+</head>
+
+<body>
+    <div class="container" style="width: 800px;">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="text-center">Voting DApp - Inisiator</h1>
+                <hr />
+
+                <!-- Add Candidate -->
+                <form id="addCandidateSection" onsubmit="App.addNewCandidate(); return false;">
+                    <h2>Add Candidate</h2>
+                    <div class="form-inline">
+                        <input type="text" id="newCandidateName" class="form-control" placeholder="Candidate Name" required>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                </form>
+                <hr />
+
+                <!-- Delete Candidate Section -->
+                <section>
+                    <div class="container" style="width: 650px;">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <h1 class="text-center">Delete Candidate</h1>
+                                <hr />
+                                <div id="loader">
+                                    <p class="text-center">Loading...</p>
+                                </div>
+                                <div id="content" style="display: none;">
+                                    <!-- Candidate Table -->
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">No</th>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Total Votes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="candidatesResults">
+                                        </tbody>
+                                    </table>
+
+                                    <hr />
+
+                                    <!-- Delete Candidate Form -->
+                                    <form onsubmit="App.deleteCandidateById(); return false;">
+                                        <div class="form-group">
+                                            <label for="candidatesDelete">Choose Candidate</label>
+                                            <select class="form-control" id="candidatesDelete">
+                                                <!-- Kandidat akan diisi oleh JS -->
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger" id="btnDeleteCandidate">Delete</button>
+                                    </form>
+                                    <hr />
+
+                                    <!-- Account Info -->
+                                    <p id="accountAddress" class="text-center"></p>
+                                    <p id="voteStatus" class="text-center"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>

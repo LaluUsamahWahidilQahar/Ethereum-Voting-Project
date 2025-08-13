@@ -1,60 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Voting Application</title>
-    <!-- Bootstrap -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voting DApp - Home</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-</head>
+    <link rel="stylesheet" href="format.css">
 
+</head>
 <body>
-    <div class="container" style="width: 650px;">
-        <div class="row">
-            <div class="col-lg-12">
-                <h1 class="text-center">Voting Application</h1>
-                <hr />
-                <br />
-                <div id="loader">
-                    <p class="text-center">Loading...</p>
-                </div>
-                <div id="content" style="display: none;">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">No</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Total Votes</th>
-                            </tr>
-                        </thead>
-                        <tbody id="candidatesResults">
-                        </tbody>
-                    </table>
-                    <hr />
-                    <form onSubmit="App.castVote(); return false;">
-                        <div class="form-group">
-                            <label for="candidatesSelect">Choose Candidate</label>
-                            <select class="form-control" id="candidatesSelect">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary" id="btnVote">Vote</button>
-                    </form>
-                    <hr />
-                    <p id="accountAddress" class="text-center"></p>
-                    <p id="voteStatus" class="text-center"></p>
-                </div>
+
+<div class="container">
+    <h1 class="text-center">Welcome to Voting DApp</h1>
+    <p class="text-center text-muted">Choose your role to continue</p>
+    <div class="row" style="margin-top: 50px;">
+        <div class="col-md-6">
+            <div class="choice-card">
+                <h3>Vote</h3>
+                <p>Cast your vote for your preferred candidate</p>
+                <a href="vote.html" class="btn btn-primary">Go to Voting</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="choice-card">
+                <h3>Inisiator</h3>
+                <p>Manage candidates (Add / Delete)</p>
+                <a href="inisiator.html" class="btn btn-success">Go to Inisiator</a>
             </div>
         </div>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-    <script src="vendor/truffle-contract/dist/truffle-contract.js"></script>
-    <script src="app.js"></script>
-</body>
+</div>
 
+</body>
 </html>

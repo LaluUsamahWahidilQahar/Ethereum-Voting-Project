@@ -64,14 +64,19 @@ App = {
   },
 
   // Render voting results
+  // Render voting results
   renderVote: async () => {
     const candidateCount = await App.Voting.candidateCount();
     $("#candidatesResults").empty();
+    $("#candidatesSelect").empty(); // kosongkan pilihan di dropdown
+
     for (var i = 1; i <= candidateCount; i++) {
       const candidate = await App.Voting.candidates(i);
-      const candidateId = candidate[0];
+      const candidateId = candidate[0].toNumber();
       const candidateName = candidate[1];
-      const voteCount = candidate[2];
+      const voteCount = candidate[2].toNumber();
+
+      // Tampilkan di tabel
       var candidateTemplate =
         "<tr><th>" +
         candidateId +
@@ -81,9 +86,17 @@ App = {
         voteCount +
         "</td></tr>";
       $("#candidatesResults").append(candidateTemplate);
+
+      // Tambahkan ke dropdown
+      $("#candidatesSelect").append(
+        `<option value="${candidateId}">${candidateName}</option>`
+      );
+      $("#candidatesDelete").append(
+        `<option value="${candidateId}">${candidateName}</option>`
+      );
     }
 
-    // Check if user has already voted
+    // Cek apakah user sudah vote
     const hasVoted = await App.Voting.voters(App.account);
     if (hasVoted) {
       $("#btnVote").prop("disabled", true);
@@ -91,13 +104,67 @@ App = {
     }
   },
 
+
+renderCandidatesForInisiator: async () => {
+  const candidateCount = await App.Voting.candidateCount();
+  $("#candidatesInisiator").empty();
+  $("#candidatesDelete").empty();
+
+  for (let i = 1; i <= candidateCount; i++) {
+    const candidate = await App.Voting.candidates(i);
+    if (!candidate.exists) continue; // skip kandidat yang dihapus
+
+    const candidateId = candidate.id.toNumber();
+    const candidateName = candidate.name;
+    const voteCount = candidate.voteCount.toNumber();
+
+    const candidateTemplate = `<tr><th>${candidateId}</th><td>${candidateName}</td><td>${voteCount}</td></tr>`;
+    $("#candidatesInisiator").append(candidateTemplate);
+
+    $("#candidatesDelete").append(`<option value="${candidateId}">${candidateName}</option>`);
+  }
+},
+
+
+
   // Function to cast a vote
   castVote: async () => {
     var candidateId = $("#candidatesSelect").val();
     await App.Voting.vote(candidateId, { from: App.account });
     window.location.reload();
   },
+
+  // Function to add a new candidate (owner only)
+  addNewCandidate: async () => {
+    const name = $("#newCandidateName").val();
+    if (!name) {
+      alert("Please enter a candidate name");
+      return;
+    }
+    await App.Voting.createCandidate(name, { from: App.account });
+    window.location.reload();
+  },
+
+  // Function to delete candidate by ID (owner only)
+  deleteCandidateById: async () => {
+    var candidateId = $("#candidatesDelete").val();
+    await App.Voting.deleteCandidate(candidateId, { from: App.account });
+    window.location.reload();
+  },
+
+  // Function to delete candidate by Name (owner only)
+  deleteCandidateByName: async () => {
+    const name = $("#deleteCandidateName").val();
+    if (!name) {
+      alert("Please enter candidate name");
+      return;
+    }
+    await App.Voting.deleteCandidateByName(name, { from: App.account });
+    window.location.reload();
+  },
 };
+
+
 
 // Initialize the app when the page is ready
 $(document).ready(function () {
