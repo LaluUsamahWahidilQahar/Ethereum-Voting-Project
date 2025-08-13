@@ -45,9 +45,8 @@
 // const { MNEMONIC, PROJECT_ID } = process.env;
 
 // const HDWalletProvider = require('@truffle/hdwallet-provider');
-
-// const mnemonic = 'earn left strong bulb alcohol advice milk monkey chaos west mixture cloth';
-
+// const sepolia_private_key = "eae7ac6efcccf3f7acb3ab3e2520c82409fca4bf62845e25b176e290be209c0b";
+// const sepolia_node_endpoint = "https://sepolia.infura.io/v3/59ef0d97bb694050bf443a3aedfe1cf1";
 module.exports = {
   /**
    * Networks define how you connect to your ethereum client and let you set the
@@ -68,22 +67,22 @@ module.exports = {
     //
     development: {
       host: "127.0.0.1",     // Localhost (default: none)
-      port: 8545,            // Standard Ethereum port (default: none)
+      port: 7545,            // Standard Ethereum port (default: none)
       network_id: "*",       // Any network (default: none)
     },
-    // geth: {
-    //   provider: () =>
-    //     new HDWalletProvider({
-    //       mnemonic: {
-    //         phrase: mnemonic
-    //       },
-    //       providerOrUrl: "http://127.0.0.1:8545/", // your Geth RPC
-    //       chainId: 123456789
-    //     }),
-    //   network_id: "123456789",
-    //   gas: 8000000,
-    //   gasPrice: 0
-    // }
+    // sepolia: {
+    //   provider: () => new HDWalletProvider(
+    //     sepolia_private_key,
+    //     sepolia_node_endpoint
+    //   ),
+    //   network_id: 11155111, // Sepolia's network id
+    //   gas: 3000000,        // turunkan limit
+    //   gasPrice: 5e9,       // 5 gwei
+    //   confirmations: 2,
+    //   timeoutBlocks: 200,
+    //   skipDryRun: true
+
+    // },
     //
     // An additional network, but with some advanced options…
     // advanced: {
@@ -107,8 +106,11 @@ module.exports = {
     //
     // Useful for private networks
     // private: {
-    //   provider: () => new HDWalletProvider(MNEMONIC, `https://network.io`),
-    //   network_id: 2111,   // This network is yours, in the cloud.
+    //   provider: () => new HDWalletProvider(
+    //       "bcdf20249abf0ed6d944c0288fad489e33f66b3960d9e6229c1cd214ed3bbe31",  // Private Key prefunded account
+    //       "http://127.0.0.1:32003"   // RPC dari Kurtosis (lihat port mapping)
+    //     ),
+    //   network_id: 585858,   // This network is yours, in the cloud.
     //   production: true    // Treats this network as if it was a public net. (default: false)
     // }
   },
