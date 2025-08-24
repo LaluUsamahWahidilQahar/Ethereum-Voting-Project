@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voting DApp - Inisiator</title>
+  <title>Voting DApp - Initiator</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <script src="vendor/truffle-contract/dist/truffle-contract.js"></script>
@@ -17,27 +17,27 @@
   <div class="container" style="max-width:800px;">
     <div class="row">
       <div class="col-lg-12">
-        <h1 class="text-center">Voting DApp - Inisiator</h1>
+        <h1 class="text-center">Voting DApp - Initiator</h1>
         <hr />
 
         <!-- Create Poll -->
-        <h3>Make New Poll</h3>
+        <h3>Create New Poll</h3>
         <form onsubmit="App.createPoll(); return false;">
           <div class="form-group">
-            <label for="pollQuestion">Pertanyaan</label>
-            <input type="text" class="form-control" id="pollQuestion" placeholder="Masukkan pertanyaan" required>
+            <label for="pollQuestion">Question</label>
+            <input type="text" class="form-control" id="pollQuestion" placeholder="Enter your question" required>
           </div>
           <div class="form-group">
-            <label for="pollOptions">Opsi (pisahkan dengan koma)</label>
-            <input type="text" class="form-control" id="pollOptions" placeholder="Contoh: Opsi1, Opsi2, Opsi3" required>
+            <label for="pollOptions">Options (separate with commas)</label>
+            <input type="text" class="form-control" id="pollOptions" placeholder="Example: Option1, Option2, Option3" required>
           </div>
-          <button type="submit" class="btn btn-success">Buat Poll</button>
+          <button type="submit" class="btn btn-success">Create Poll</button>
         </form>
 
         <hr />
 
-        <!-- Daftar Poll yang dibuat -->
-        <h3>Youre Poll</h3>
+        <!-- List of Polls created -->
+        <h3>Your Polls</h3>
         <div id="myPolls"></div>
 
         <hr />
