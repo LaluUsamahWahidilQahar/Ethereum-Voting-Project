@@ -64,7 +64,7 @@ App = {
     }
   },
 
-  // Render all polls (voting page)
+  // Render all polls
   renderPolls: async () => {
     const pollCount = await App.Voting.pollCount();
     $("#pollsList").empty();
@@ -77,8 +77,12 @@ App = {
       const options = pollData[1];
       const votes = pollData[2];
       const finalized = pollData[3];
-
       const creator = pollMeta[0];
+
+      if (!question || creator === "0x0000000000000000000000000000000000000000") {
+        continue;
+      }
+
       const alreadyVoted = await App.Voting.hasVoted(App.account, i);
 
       let optionsHtml = "";
@@ -104,7 +108,6 @@ App = {
             ? "<p><i>You already voted in this poll</i></p>"
             : `<button onclick="App.castVote(${i})">Vote</button>`
         }
-
       </div>
     `;
 
@@ -113,7 +116,7 @@ App = {
   },
 
 
-  // Render my polls (creator page)
+  // Render my polls
   renderMyPolls: async () => {
     const pollCount = await App.Voting.pollCount();
     $("#myPolls").empty();

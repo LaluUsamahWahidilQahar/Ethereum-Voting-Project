@@ -29,7 +29,7 @@ contract Voting {
         string[] options
     );
     event PollVoted(uint id, address voter, uint optionIndex);
-    event PollDeleted(uint id);
+    event PollDeleted(uint id, address deletedBy);
     event PollFinalized(uint id);
 
     function pollCount() external view returns (uint) {
@@ -130,25 +130,14 @@ contract Voting {
 
     function deletePoll(uint _pollId) external {
         require(_pollId != 0 && _pollId <= pollsCount, "Poll does not exist");
-        require(pollIdToPoll[_pollId].creator == msg.sender, "Only creator can delete");
 
-        uint lastId = pollsCount;
+        Poll storage poll = pollIdToPoll[_pollId];
+        require(poll.creator == msg.sender, "Only creator can delete");
 
-        if (_pollId != lastId) {
-            // copy data poll terakhir ke posisi _pollId
-            pollIdToPoll[_pollId] = pollIdToPoll[lastId];
-            pollIdToOptions[_pollId] = pollIdToOptions[lastId];
+        delete pollIdToOptions[_pollId];
 
-            // update id agar konsisten
-            pollIdToPoll[_pollId].id = _pollId;
-        }
+        delete pollIdToPoll[_pollId];
 
-        // hapus data terakhir
-        delete pollIdToPoll[lastId];
-        delete pollIdToOptions[lastId];
-
-        pollsCount--;
-
-        emit PollDeleted(_pollId);
+        emit PollDeleted(_pollId, msg.sender);
     }
 }
