@@ -1,89 +1,154 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity ^0.8.0;
 
 contract Voting {
-    struct Candidate {
+    uint public pollsCount = 0;
+
+    struct Option {
+        string option;
+        uint votes;
+    }
+
+    struct Poll {
         uint id;
-        string name;
-        uint voteCount;
-        bool exists;
+        address creator;
+        string question;
+        bool finalized;
     }
 
-    mapping(address => bool) public voters; // status voting tiap address
-    address[] public voterList; // daftar voter untuk reset
-    mapping(uint => Candidate) public candidates;
-    uint public candidateCount;
-    address public owner;
+    // Storage
+    mapping(uint => Poll) public pollIdToPoll;
+    mapping(uint => Option[]) public pollIdToOptions;
+    mapping(address => mapping(uint => bool)) public hasVotedOnPoll;
 
-    constructor() {
-        owner = msg.sender;
-        _addCandidate("Candidate 1");
-        _addCandidate("Candidate 2");
-        _addCandidate("Candidate 3");
+    // Events
+    event PollCreated(
+        uint id,
+        address creator,
+        string question,
+        string[] options
+    );
+    event PollVoted(uint id, address voter, uint optionIndex);
+    event PollDeleted(uint id);
+    event PollFinalized(uint id);
+
+    function pollCount() external view returns (uint) {
+        return pollsCount;
     }
 
-    // hanya untuk internal
-    function _addCandidate(string memory _name) internal {
-        candidateCount++;
-        candidates[candidateCount] = Candidate({
-            id: candidateCount,
-            name: _name,
-            voteCount: 0,
-            exists: true
+    function createPoll(
+        string memory _question,
+        string[] memory _options
+    ) public {
+        require(bytes(_question).length > 0, "Question required");
+        require(_options.length > 1, "Need at least 2 options");
+
+        pollsCount++;
+        Poll memory _poll = Poll({
+            id: pollsCount,
+            creator: msg.sender,
+            question: _question,
+            finalized: false
         });
-        _resetVoters();
-        _resetVotes();
-    }
+        pollIdToPoll[pollsCount] = _poll;
 
-    function createCandidate(string memory _name) public {
-        require(msg.sender == owner, "Only owner can add candidates");
-        _addCandidate(_name);
-    }
-
-    function deleteCandidate(uint _candidateId) public {
-        require(msg.sender == owner, "Only owner can delete candidates");
-        require(candidates[_candidateId].exists, "Candidate does not exist");
-
-        // swap and pop
-        if (_candidateId != candidateCount) {
-            candidates[_candidateId] = candidates[candidateCount];
-            candidates[_candidateId].id = _candidateId;
+        for (uint i = 0; i < _options.length; i++) {
+            pollIdToOptions[pollsCount].push(
+                Option({option: _options[i], votes: 0})
+            );
         }
 
-        delete candidates[candidateCount];
-        candidateCount--;
-
-        if (_candidateId <= candidateCount) {
-            candidates[_candidateId].exists = true;
-        }
-
-        _resetVoters();
-        _resetVotes();
+        emit PollCreated(pollsCount, msg.sender, _question, _options);
     }
 
-    function vote(uint _candidateId) public {
-        require(!voters[msg.sender], "You have already voted.");
-        require(candidates[_candidateId].exists, "Candidate does not exist");
+    function vote(uint _pollId, uint _optionIndex) public {
+        require(_pollId != 0 && _pollId <= pollsCount, "Poll does not exist");
+        Poll storage p = pollIdToPoll[_pollId];
 
-        voters[msg.sender] = true;
-        voterList.push(msg.sender); // catat voter
-        candidates[_candidateId].voteCount++;
+        require(!p.finalized, "Poll already finalized");
+        require(
+            _optionIndex < pollIdToOptions[_pollId].length,
+            "Invalid option"
+        );
+        require(!hasVotedOnPoll[msg.sender][_pollId], "Already voted");
+
+        pollIdToOptions[_pollId][_optionIndex].votes += 1;
+        hasVotedOnPoll[msg.sender][_pollId] = true;
+
+        emit PollVoted(_pollId, msg.sender, _optionIndex);
     }
 
-    // Reset semua voter menjadi belum vote
-    function _resetVoters() internal {
-        for (uint i = 0; i < voterList.length; i++) {
-            voters[voterList[i]] = false;
-        }
-        delete voterList; // kosongkan daftar voter
+    function finalizePoll(uint _pollId) external {
+        require(_pollId != 0 && _pollId <= pollsCount, "Poll does not exist");
+        Poll storage p = pollIdToPoll[_pollId];
+        require(p.creator == msg.sender, "Only creator can finalize");
+        require(!p.finalized, "Already finalized");
+
+        p.finalized = true;
+        emit PollFinalized(_pollId);
     }
 
-    // Reset voteCount semua kandidat
-    function _resetVotes() internal {
-        for (uint i = 1; i <= candidateCount; i++) {
-            if(candidates[i].exists){
-                candidates[i].voteCount = 0;
-            }
+    function getPoll(
+        uint _pollId
+    )
+        external
+        view
+        returns (
+            string memory question,
+            string[] memory options,
+            uint[] memory votes,
+            bool finalized
+        )
+    {
+        require(_pollId != 0 && _pollId <= pollsCount, "Poll does not exist");
+
+        Poll storage poll = pollIdToPoll[_pollId];
+        uint optionCount = pollIdToOptions[_pollId].length;
+
+        string[] memory optionTexts = new string[](optionCount);
+        uint[] memory optionVotes = new uint[](optionCount);
+
+        for (uint i = 0; i < optionCount; i++) {
+            optionTexts[i] = pollIdToOptions[_pollId][i].option;
+            optionVotes[i] = pollIdToOptions[_pollId][i].votes;
         }
+
+        return (poll.question, optionTexts, optionVotes, poll.finalized);
+    }
+
+    function getPollMeta(
+        uint _pollId
+    ) external view returns (address creator, bool finalized) {
+        require(_pollId != 0 && _pollId <= pollsCount, "Poll does not exist");
+        Poll storage poll = pollIdToPoll[_pollId];
+        return (poll.creator, poll.finalized);
+    }
+
+    function hasVoted(address user, uint _pollId) external view returns (bool) {
+        return hasVotedOnPoll[user][_pollId];
+    }
+
+    function deletePoll(uint _pollId) external {
+        require(_pollId != 0 && _pollId <= pollsCount, "Poll does not exist");
+        require(pollIdToPoll[_pollId].creator == msg.sender, "Only creator can delete");
+
+        uint lastId = pollsCount;
+
+        if (_pollId != lastId) {
+            // copy data poll terakhir ke posisi _pollId
+            pollIdToPoll[_pollId] = pollIdToPoll[lastId];
+            pollIdToOptions[_pollId] = pollIdToOptions[lastId];
+
+            // update id agar konsisten
+            pollIdToPoll[_pollId].id = _pollId;
+        }
+
+        // hapus data terakhir
+        delete pollIdToPoll[lastId];
+        delete pollIdToOptions[lastId];
+
+        pollsCount--;
+
+        emit PollDeleted(_pollId);
     }
 }

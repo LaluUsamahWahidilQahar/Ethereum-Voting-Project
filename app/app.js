@@ -4,7 +4,6 @@ App = {
   contracts: {},
   account: null,
 
-  // Load the application
   load: async () => {
     await App.loadWeb3();
     await App.loadAccount();
@@ -12,12 +11,11 @@ App = {
     await App.render();
   },
 
-  // Connect to Web3
   loadWeb3: async () => {
     if (window.ethereum) {
       App.web3Provider = window.ethereum;
       window.web3 = new Web3(window.ethereum);
-      await window.ethereum.enable(); // Request access to MetaMask
+      await window.ethereum.enable();
     } else if (window.web3) {
       App.web3Provider = window.web3.currentProvider;
       window.web3 = new Web3(window.web3.currentProvider);
@@ -26,13 +24,11 @@ App = {
     }
   },
 
-  // Load the user's Ethereum account
   loadAccount: async () => {
     const accounts = await ethereum.request({ method: "eth_accounts" });
     App.account = accounts[0];
   },
 
-  // Load the smart contract
   loadContract: async () => {
     const votingJson = await $.getJSON("Voting.json");
     App.contracts.Voting = TruffleContract(votingJson);
@@ -40,16 +36,21 @@ App = {
     App.Voting = await App.contracts.Voting.deployed();
   },
 
-  // Render the UI
   render: async () => {
     if (App.loading) return;
     App.setLoading(true);
+
     $("#accountAddress").html("Account Address: " + App.account);
-    await App.renderVote();
+
+    if ($("#myPolls").length) {
+      await App.renderMyPolls();
+    } else if ($("#pollsList").length) {
+      await App.renderPolls();
+    }
+
     App.setLoading(false);
   },
 
-  // Toggle loading spinner
   setLoading: (bool) => {
     App.loading = bool;
     const loader = $("#loader");
@@ -63,110 +64,152 @@ App = {
     }
   },
 
-  // Render voting results
-  // Render voting results
-  renderVote: async () => {
-    const candidateCount = await App.Voting.candidateCount();
-    $("#candidatesResults").empty();
-    $("#candidatesSelect").empty(); // kosongkan pilihan di dropdown
+  // Render all polls (voting page)
+  renderPolls: async () => {
+    const pollCount = await App.Voting.pollCount();
+    $("#pollsList").empty();
 
-    for (var i = 1; i <= candidateCount; i++) {
-      const candidate = await App.Voting.candidates(i);
-      const candidateId = candidate[0].toNumber();
-      const candidateName = candidate[1];
-      const voteCount = candidate[2].toNumber();
+    for (let i = 1; i <= pollCount.toNumber(); i++) {
+      const pollData = await App.Voting.getPoll(i);
+      const pollMeta = await App.Voting.getPollMeta(i);
 
-      // Tampilkan di tabel
-      var candidateTemplate =
-        "<tr><th>" +
-        candidateId +
-        "</th><td>" +
-        candidateName +
-        "</td><td>" +
-        voteCount +
-        "</td></tr>";
-      $("#candidatesResults").append(candidateTemplate);
+      const question = pollData[0];
+      const options = pollData[1];
+      const votes = pollData[2];
+      const finalized = pollData[3];
 
-      // Tambahkan ke dropdown
-      $("#candidatesSelect").append(
-        `<option value="${candidateId}">${candidateName}</option>`
-      );
-      $("#candidatesDelete").append(
-        `<option value="${candidateId}">${candidateName}</option>`
-      );
-    }
+      const creator = pollMeta[0];
+      const alreadyVoted = await App.Voting.hasVoted(App.account, i);
 
-    // Cek apakah user sudah vote
-    const hasVoted = await App.Voting.voters(App.account);
-    if (hasVoted) {
-      $("#btnVote").prop("disabled", true);
-      $("#voteStatus").html("You have already voted!");
+      let optionsHtml = "";
+      for (let j = 0; j < options.length; j++) {
+        optionsHtml += `
+        <div>
+          <input type="radio" name="poll_${i}" value="${j}" 
+            ${finalized || alreadyVoted ? "disabled" : ""}>
+          ${options[j]} (${votes[j].toNumber()} votes)
+        </div>
+      `;
+      }
+
+      const pollTemplate = `
+      <div class="poll-card">
+        <h3>${question}</h3>
+        <p><b>Creator:</b> ${creator}</p>
+        <p><b>Status:</b> ${finalized ? "Finalized" : "Active"}</p>
+        ${optionsHtml}
+        ${finalized
+          ? "<p><i>Poll closed</i></p>"
+          : alreadyVoted
+            ? "<p><i>You already voted in this poll</i></p>"
+            : `<button onclick="App.castVote(${i})">Vote</button>`
+        }
+
+      </div>
+    `;
+
+      $("#pollsList").append(pollTemplate);
     }
   },
 
 
-renderCandidatesForInisiator: async () => {
-  const candidateCount = await App.Voting.candidateCount();
-  $("#candidatesInisiator").empty();
-  $("#candidatesDelete").empty();
+  // Render my polls (creator page)
+  renderMyPolls: async () => {
+    const pollCount = await App.Voting.pollCount();
+    $("#myPolls").empty();
 
-  for (let i = 1; i <= candidateCount; i++) {
-    const candidate = await App.Voting.candidates(i);
-    if (!candidate.exists) continue; // skip kandidat yang dihapus
+    for (let i = 1; i <= pollCount.toNumber(); i++) {
+      const pollData = await App.Voting.getPoll(i);
+      const pollMeta = await App.Voting.getPollMeta(i);
 
-    const candidateId = candidate.id.toNumber();
-    const candidateName = candidate.name;
-    const voteCount = candidate.voteCount.toNumber();
+      const creator = pollMeta[0];
+      if (creator.toLowerCase() !== App.account.toLowerCase()) continue;
 
-    const candidateTemplate = `<tr><th>${candidateId}</th><td>${candidateName}</td><td>${voteCount}</td></tr>`;
-    $("#candidatesInisiator").append(candidateTemplate);
+      const question = pollData[0];
+      const options = pollData[1];
+      const votes = pollData[2];
+      const finalized = pollData[3];
 
-    $("#candidatesDelete").append(`<option value="${candidateId}">${candidateName}</option>`);
+      let optionsHtml = "";
+      for (let j = 0; j < options.length; j++) {
+        optionsHtml += `
+          <div>
+            ${options[j]} (${votes[j].toNumber()} votes)
+          </div>
+        `;
+      }
+
+      let actionButtons = `<button onclick="App.deletePoll(${i})">Delete</button>`;
+      if (!finalized) {
+        actionButtons += ` <button onclick="App.finalizePoll(${i})">Finalize</button>`;
+      }
+
+      const pollTemplate = `
+        <div class="poll-card">
+          <h3>${question}</h3>
+          <p><b>Status:</b> ${finalized ? "Finalized" : "Active"}</p>
+          ${optionsHtml}
+          ${actionButtons}
+        </div>
+      `;
+
+      $("#myPolls").append(pollTemplate);
+    }
+  },
+
+  // Create new poll
+  createPoll: async () => {
+    const question = $("#pollQuestion").val();
+    const optionsRaw = $("#pollOptions").val();
+
+    if (!question || !optionsRaw) {
+      alert("Please fill in question and options");
+      return;
+    }
+
+    const options = optionsRaw.split(",").map((opt) => opt.trim());
+
+    await App.Voting.createPoll(question, options, { from: App.account });
+    window.location.reload();
+  },
+
+  deletePoll: async (pollId) => {
+    if (!confirm("Are you sure you want to delete this poll?")) return;
+    try {
+      await App.Voting.deletePoll(pollId, { from: App.account });
+      alert("Poll deleted successfully!");
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete poll: " + error.message);
+    }
+  },
+
+  finalizePoll: async (pollId) => {
+    try {
+      await App.Voting.finalizePoll(pollId, { from: App.account });
+      alert("Poll finalized successfully!");
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to finalize poll: " + error.message);
+    }
+  },
+
+  castVote: async (pollId) => {
+    const option = $(`input[name=poll_${pollId}]:checked`).val();
+    if (option === undefined) {
+      alert("Please select an option");
+      return;
+    }
+
+    const optionIndex = parseInt(option);
+
+    await App.Voting.vote(pollId, optionIndex, { from: App.account });
+    window.location.reload();
   }
-},
-
-
-
-  // Function to cast a vote
-  castVote: async () => {
-    var candidateId = $("#candidatesSelect").val();
-    await App.Voting.vote(candidateId, { from: App.account });
-    window.location.reload();
-  },
-
-  // Function to add a new candidate (owner only)
-  addNewCandidate: async () => {
-    const name = $("#newCandidateName").val();
-    if (!name) {
-      alert("Please enter a candidate name");
-      return;
-    }
-    await App.Voting.createCandidate(name, { from: App.account });
-    window.location.reload();
-  },
-
-  // Function to delete candidate by ID (owner only)
-  deleteCandidateById: async () => {
-    var candidateId = $("#candidatesDelete").val();
-    await App.Voting.deleteCandidate(candidateId, { from: App.account });
-    window.location.reload();
-  },
-
-  // Function to delete candidate by Name (owner only)
-  deleteCandidateByName: async () => {
-    const name = $("#deleteCandidateName").val();
-    if (!name) {
-      alert("Please enter candidate name");
-      return;
-    }
-    await App.Voting.deleteCandidateByName(name, { from: App.account });
-    window.location.reload();
-  },
 };
 
-
-
-// Initialize the app when the page is ready
 $(document).ready(function () {
   App.load();
   ethereum.on("accountsChanged", function (accounts) {
