@@ -64,7 +64,6 @@ App = {
     }
   },
 
-  // Render all polls
   renderPolls: async () => {
     const pollCount = await App.Voting.pollCount();
     $("#pollsList").empty();
@@ -116,7 +115,6 @@ App = {
   },
 
 
-  // Render my polls
   renderMyPolls: async () => {
     const pollCount = await App.Voting.pollCount();
     $("#myPolls").empty();
@@ -161,7 +159,6 @@ App = {
     }
   },
 
-  // Create new poll
   createPoll: async () => {
     const question = $("#pollQuestion").val();
     const optionsRaw = $("#pollOptions").val();
