@@ -70,13 +70,12 @@ App = {
 
     for (let i = 1; i <= pollCount.toNumber(); i++) {
       const pollData = await App.Voting.getPoll(i);
-      const pollMeta = await App.Voting.getPollMeta(i);
 
-      const question = pollData[0];
-      const options = pollData[1];
-      const votes = pollData[2];
-      const finalized = pollData[3];
-      const creator = pollMeta[0];
+      const question = pollData[1];
+      const options = pollData[2];
+      const votes = pollData[3];
+      const finalized = pollData[4];
+      const creator = pollData[0];
 
       if (!question || creator === "0x0000000000000000000000000000000000000000") {
         continue;
@@ -121,15 +120,14 @@ App = {
 
     for (let i = 1; i <= pollCount.toNumber(); i++) {
       const pollData = await App.Voting.getPoll(i);
-      const pollMeta = await App.Voting.getPollMeta(i);
 
-      const creator = pollMeta[0];
+      const creator = pollData[0];
       if (creator.toLowerCase() !== App.account.toLowerCase()) continue;
 
-      const question = pollData[0];
-      const options = pollData[1];
-      const votes = pollData[2];
-      const finalized = pollData[3];
+      const question = pollData[1];
+      const options = pollData[2];
+      const votes = pollData[3];
+      const finalized = pollData[4];
 
       let optionsHtml = "";
       for (let j = 0; j < options.length; j++) {

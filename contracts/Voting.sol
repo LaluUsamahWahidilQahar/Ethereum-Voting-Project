@@ -16,12 +16,10 @@ contract Voting {
         bool finalized;
     }
 
-    // Storage
     mapping(uint => Poll) public pollIdToPoll;
     mapping(uint => Option[]) public pollIdToOptions;
     mapping(address => mapping(uint => bool)) public hasVotedOnPoll;
 
-    // Events
     event PollCreated(
         uint id,
         address creator,
@@ -94,6 +92,7 @@ contract Voting {
         external
         view
         returns (
+            address creator,
             string memory question,
             string[] memory options,
             uint[] memory votes,
@@ -113,16 +112,9 @@ contract Voting {
             optionVotes[i] = pollIdToOptions[_pollId][i].votes;
         }
 
-        return (poll.question, optionTexts, optionVotes, poll.finalized);
+        return (poll.creator, poll.question, optionTexts, optionVotes, poll.finalized);
     }
 
-    function getPollMeta(
-        uint _pollId
-    ) external view returns (address creator, bool finalized) {
-        require(_pollId != 0 && _pollId <= pollsCount, "Poll does not exist");
-        Poll storage poll = pollIdToPoll[_pollId];
-        return (poll.creator, poll.finalized);
-    }
 
     function hasVoted(address user, uint _pollId) external view returns (bool) {
         return hasVotedOnPoll[user][_pollId];
