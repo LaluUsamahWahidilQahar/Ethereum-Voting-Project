@@ -173,7 +173,6 @@ App = {
 
     const options = optionsRaw.split(",").map((opt) => opt.trim()).filter(opt => opt.length > 0);
 
-    // validasi minimal 2 opsi
     if (options.length < 2) {
       alert("Please enter at least 2 options");
       return;
