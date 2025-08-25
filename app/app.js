@@ -106,7 +106,7 @@ App = {
           ? "<p><i>Poll closed</i></p>"
           : alreadyVoted
             ? "<p><i>You already voted in this poll</i></p>"
-            : `<button onclick="App.castVote(${i})">Vote</button>`
+            : `<button class="btn btn-success" onclick="App.castVote(${i})">Vote</button>`
         }
       </div>
     `;
@@ -142,10 +142,11 @@ App = {
         `;
       }
 
-      let actionButtons = `<button onclick="App.deletePoll(${i})">Delete</button>`;
+      let actionButtons = `<button class="btn btn-danger" onclick="App.deletePoll(${i})">Delete</button>`;
       if (!finalized) {
-        actionButtons += ` <button onclick="App.finalizePoll(${i})">Finalize</button>`;
+        actionButtons += ` <button class="btn btn-primary" onclick="App.finalizePoll(${i})">Finalize</button>`;
       }
+
 
       const pollTemplate = `
         <div class="poll-card">
@@ -170,10 +171,22 @@ App = {
       return;
     }
 
-    const options = optionsRaw.split(",").map((opt) => opt.trim());
+    const options = optionsRaw.split(",").map((opt) => opt.trim()).filter(opt => opt.length > 0);
 
-    await App.Voting.createPoll(question, options, { from: App.account });
-    window.location.reload();
+    // validasi minimal 2 opsi
+    if (options.length < 2) {
+      alert("Please enter at least 2 options");
+      return;
+    }
+
+    try {
+      await App.Voting.createPoll(question, options, { from: App.account });
+      alert("Poll created successfully!");
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create poll: " + error.message);
+    }
   },
 
   deletePoll: async (pollId) => {
