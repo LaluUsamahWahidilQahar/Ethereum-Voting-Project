@@ -61,9 +61,9 @@ contract Voting {
 
     function vote(uint _pollId, uint _optionIndex) public {
         require(_pollId != 0 && _pollId <= pollsCount, "Poll does not exist");
-        Poll storage p = pollIdToPoll[_pollId];
+        Poll storage poll = pollIdToPoll[_pollId];
 
-        require(!p.finalized, "Poll already finalized");
+        require(!poll.finalized, "Poll already finalized");
         require(
             _optionIndex < pollIdToOptions[_pollId].length,
             "Invalid option"
@@ -78,11 +78,11 @@ contract Voting {
 
     function finalizePoll(uint _pollId) external {
         require(_pollId != 0 && _pollId <= pollsCount, "Poll does not exist");
-        Poll storage p = pollIdToPoll[_pollId];
-        require(p.creator == msg.sender, "Only creator can finalize");
-        require(!p.finalized, "Already finalized");
+        Poll storage poll = pollIdToPoll[_pollId];
+        require(poll.creator == msg.sender, "Only creator can finalize");
+        require(!poll.finalized, "Already finalized");
 
-        p.finalized = true;
+        poll.finalized = true;
         emit PollFinalized(_pollId);
     }
 
